@@ -4,13 +4,16 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#101510" />
-    <title>Three.js Green Cube</title>
+    <title>Three.js Taxi</title>
   </head>
   <body>
     <main>
       <div class="label">THREE.JS <span>01</span></div>
-      <div id="scene" aria-label="A rotating green 3D cube above a green ground with horizon fog"></div>
-      <p class="hint">A little 3D, a little green.</p>
+      <div id="scene" aria-label="A controllable taxi driving on a green ground"></div>
+      <p class="hint">
+        Drive: Z / ↑ forward · S / ↓ reverse · Q / ← left · D / → right
+      </p>
+      <p class="model-error" id="model-error" role="alert" hidden></p>
     </main>
     <script type="module" src="/src/main.js"></script>
   </body>
