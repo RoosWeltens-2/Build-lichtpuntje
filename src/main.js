@@ -9,6 +9,7 @@ if (!(container instanceof HTMLElement)) {
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color('#101510');
+scene.fog = new THREE.Fog('#101510', 8, 32);
 
 const camera = new THREE.PerspectiveCamera(
   45,
@@ -32,6 +33,14 @@ scene.add(new THREE.AmbientLight('#ffffff', 1.5));
 const keyLight = new THREE.DirectionalLight('#ffffff', 3);
 keyLight.position.set(3, 5, 4);
 scene.add(keyLight);
+
+const ground = new THREE.Mesh(
+  new THREE.PlaneGeometry(200, 200),
+  new THREE.MeshStandardMaterial({ color: '#315f3d', roughness: 1 }),
+);
+ground.rotation.x = -Math.PI / 2;
+ground.position.y = -0.86;
+scene.add(ground);
 
 const cube = new THREE.Mesh(
   new THREE.BoxGeometry(1.7, 1.7, 1.7),
