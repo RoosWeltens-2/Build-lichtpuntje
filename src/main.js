@@ -1,67 +1,49 @@
 import * as THREE from 'three';
 import './style.css';
+import { DrivingController } from './driving-controller.js';
+import { FollowCamera } from './follow-camera.js';
+import { SceneManager } from './scene-manager.js';
+import { Taxi } from './taxi.js';
 
 const container = document.querySelector('#scene');
+const modelError = document.querySelector('#model-error');
 
 if (!(container instanceof HTMLElement)) {
   throw new Error('Could not find the scene container.');
 }
 
-const scene = new THREE.Scene();
-scene.background = new THREE.Color('#101510');
-scene.fog = new THREE.Fog('#101510', 8, 32);
-
-const camera = new THREE.PerspectiveCamera(
-  45,
-  container.clientWidth / container.clientHeight,
-  0.1,
-  100,
-);
-camera.position.set(3.5, 2.8, 5);
-camera.lookAt(0, 0, 0);
-
-const renderer = new THREE.WebGLRenderer({ antialias: true });
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-renderer.setSize(container.clientWidth, container.clientHeight);
-renderer.outputColorSpace = THREE.SRGBColorSpace;
-renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.2;
-container.append(renderer.domElement);
-
-scene.add(new THREE.AmbientLight('#ffffff', 1.5));
-
-const keyLight = new THREE.DirectionalLight('#ffffff', 3);
-keyLight.position.set(3, 5, 4);
-scene.add(keyLight);
-
-const ground = new THREE.Mesh(
-  new THREE.PlaneGeometry(200, 200),
-  new THREE.MeshStandardMaterial({ color: '#315f3d', roughness: 1 }),
-);
-ground.rotation.x = -Math.PI / 2;
-ground.position.y = -0.86;
-scene.add(ground);
-
-const cube = new THREE.Mesh(
-  new THREE.BoxGeometry(1.7, 1.7, 1.7),
-  new THREE.MeshStandardMaterial({ color: '#39e75f', roughness: 0.35 }),
-);
-scene.add(cube);
-
-function resize() {
-  const { clientWidth, clientHeight } = container;
-  camera.aspect = clientWidth / clientHeight;
-  camera.updateProjectionMatrix();
-  renderer.setSize(clientWidth, clientHeight);
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+if (!(modelError instanceof HTMLElement)) {
+  throw new Error('Could not find the model error message.');
 }
 
-window.addEventListener('resize', resize);
+const world = new SceneManager(container);
+const taxi = new Taxi(world.scene, world.groundY);
+const drivingController = new DrivingController(taxi);
+const followCamera = new FollowCamera(world.camera, taxi);
+const clock = new THREE.Clock();
+
+async function loadTaxi() {
+  try {
+    await taxi.load('/models/taxi.glb');
+    followCamera.update(0);
+  } catch (error) {
+    console.error('Could not load /models/taxi.glb.', error);
+    modelError.textContent =
+      'Could not load taxi.glb. Check that it is in public/models/.';
+    modelError.hidden = false;
+  }
+}
 
 function animate() {
-  cube.rotation.x += 0.004;
-  cube.rotation.y += 0.006;
-  renderer.render(scene, camera);
+  const delta = Math.min(clock.getDelta(), 0.05);
+
+  if (taxi.loaded) {
+    drivingController.update(delta);
+    followCamera.update(delta);
+  }
+
+  world.render();
 }
 
-renderer.setAnimationLoop(animate);
+void loadTaxi();
+world.renderer.setAnimationLoop(animate);
